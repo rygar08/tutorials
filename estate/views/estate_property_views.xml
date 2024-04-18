@@ -9,6 +9,7 @@
                 <tree>
                     <field name="name"/>
                     <field name="description"/>
+                    <field name="tag_ids" widget="many2many_tags"/>
                     <field name="postcode"/>
                     <field name="bedrooms"/>
                     <field name="living_area"/>
@@ -32,6 +33,7 @@
                         </group>
                         <group>
                             <group>
+                                <field name="tag_ids" widget="many2many_tags"/>
                                 <field name="postcode"/>
                                 <field name="bedrooms"/>
                                 <field name="living_area"/>
@@ -52,8 +54,14 @@
                                 <page string="Description">
                                     <field name="description"/>
                                 </page>
+                                <page string="Offers">
+                                    <field name="offer_ids"/>
+                                </page>
                                 <page string="Other Info">
-                                    <!--                                        <field name=""/>-->
+                                    <group>
+                                        <field name="buyer_id"/>
+                                        <field name="seller_id"/>
+                                    </group>
                                 </page>
                             </notebook>
                         </group>
@@ -83,29 +91,6 @@
                 </search>
             </field>
         </record>
-
-        <!-- Actions-->
-        <record id="estate_property_model_action" model="ir.actions.act_window">
-            <field name="name">Estate Properties</field>
-            <field name="res_model">estate.property</field>
-            <field name="view_mode">tree,form</field>
-        </record>
-        <record id="estate_property_type_model_action" model="ir.actions.act_window">
-            <field name="name">Property Types</field>
-            <field name="res_model">estate.property.type</field>
-            <field name="view_mode">tree,form</field>
-        </record>
-
-
-        <menuitem id="estate_property_menu_root" name="Estate">
-            <menuitem id="estate_property_first_level_menu" name="Properties">
-                <menuitem id="estate_property_model_menu_action" action="estate_property_model_action"/>
-            </menuitem>
-            <menuitem id="estate_property_type_first_level_menu" name="Settings">
-                <menuitem id="estate_property_type_model_menu_action" action="estate_property_type_model_action"/>
-            </menuitem>
-        </menuitem>
-
 
     </data>
 </odoo>
