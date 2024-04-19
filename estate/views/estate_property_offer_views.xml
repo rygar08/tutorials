@@ -7,10 +7,13 @@
             <field name="model">estate.property.offer</field>
             <field name="arch" type="xml">
                 <tree>
+                    <field name="create_date"/>
                     <field name="property_id"/>
                     <field name="price"/>
                     <field name="partner_id"/>
                     <field name="status"/>
+                    <field name="validity"/>
+                    <field name="date_deadline"/>
                 </tree>
             </field>
         </record>
@@ -21,14 +24,17 @@
             <field name="model">estate.property.offer</field>
             <field name="arch" type="xml">
                 <form string="Estate Property Offer">
-                <sheet>
-                    <group>
-                        <field name="property_id"/>
-                        <field name="price"/>
-                        <field name="partner_id"/>
-                        <field name="status"/>
-                    </group>
-                </sheet>
+                    <sheet>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="property_id"/>
+                            <field name="price"/>
+                            <field name="partner_id"/>
+                            <field name="date_deadline"/>
+                            <field name="validity"/>
+                            <field name="status"/>
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>
