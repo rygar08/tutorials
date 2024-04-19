@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from odoo import fields, models
 from odoo.odoo import api
+from odoo.odoo.exceptions import UserError, ValidationError
 
 
 class EstateProperty(models.Model):
@@ -30,7 +31,7 @@ class EstateProperty(models.Model):
     state = fields.Selection(
         string="Status",
         selection=[("new", "New"), ("offer_received", "Offer received"), ("offer_accepted", "Offer accepted"),
-                   ("sold", "Sold")],
+                   ("sold", "Sold"), ("cancel", "Cancelled")],
         copy=False,
         default="new",
     )
@@ -56,6 +57,27 @@ class EstateProperty(models.Model):
         for record in self:
             record.best_price = min(record.offer_ids.mapped("price")) if record.offer_ids else 0.0
 
+    def action_sold(self):
+        for record in self:
+            if record.state == "cancel":
+                raise UserError("You cannot sell a property that is cancelled.", "Error!")
+            record.state = "sold"
+            record.selling_price = record.best_price
+            record.buyer_id = record.offer_ids.filtered(lambda offer: offer.price == record.best_price).partner_id
+            record.offer_ids.write({"status": "refused"})
+            record.offer_ids.filtered(lambda t: t.price != record.best_price).write({"status": "accepted"})
+        return True
+
+    def action_cancel(self):
+        for record in self:
+            if record.state == "sold":
+                raise ValidationError("You cannot cancel a property that is sold.")
+            self.state = "cancel"
+            self.buyer_id = False
+            self.selling_price = 0.0
+            self.offer_ids.write({"status": "refused"})
+        return True
+
 
 class EstatePropertyType(models.Model):
     _name = "estate.property.type"
@@ -73,6 +95,7 @@ class EstatePropertyTag(models.Model):
     color = fields.Integer()
     property_ids = fields.Many2many("estate.property", string="Properties")
 
+
 class PropertyOffer(models.Model):
     _name = "estate.property.offer"
     _description = "Real Estate Property Offer"
@@ -87,7 +110,8 @@ class PropertyOffer(models.Model):
     partner_id = fields.Many2one("res.partner", required=True, string="Partner")
     property_id = fields.Many2one("estate.property", required=True)
     validity = fields.Integer(string="Validity (days)", default=7)
-    date_deadline = fields.Date(string="Deadline", compute="_compute_date_deadline", inverse="_inverse_date_deadline", store=True)
+    date_deadline = fields.Date(string="Deadline", compute="_compute_date_deadline", inverse="_inverse_date_deadline",
+                                store=True)
 
     @api.depends("create_date", "validity")
     def _compute_date_deadline(self):
@@ -99,4 +123,3 @@ class PropertyOffer(models.Model):
         for record in self:
             if record.date_deadline:
                 record.validity = (record.date_deadline - record.create_date).days + 1
-

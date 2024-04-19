@@ -27,6 +27,11 @@
             <field name="model">estate.property</field>
             <field name="arch" type="xml">
                 <form string="Estate Property">
+                    <header>
+                        <button type="action" name="%(estate.estate_property_tag_model_action)d" string="Go to tags"/>
+                        <button name="action_sold" string="Sold" type="object" class="oe_highlight"/>
+                        <button name="action_cancel" string="Cancel" type="object" class="oe_highlight"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="name"/>
