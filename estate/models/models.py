@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from odoo import fields, models
-from odoo.odoo import api
+from odoo.odoo import api, _
 from odoo.odoo.exceptions import UserError, ValidationError
 
 
@@ -9,6 +9,11 @@ class EstateProperty(models.Model):
     _name = "estate.property"
     _description = "Real Estate Property"
     _order = "id desc"
+
+    _sql_constraints = [
+        ('unique_name', 'UNIQUE (name)', _('Document type name must be unique')),
+        ('positive_expected_price', 'CHECK(expected_price > 0)', _('The expected price must be positive')),
+    ]
 
     name = fields.Char(required=True)
     description = fields.Text()
@@ -55,7 +60,7 @@ class EstateProperty(models.Model):
     @api.depends("offer_ids.price")
     def _compute_best_price(self):
         for record in self:
-            record.best_price = min(record.offer_ids.mapped("price")) if record.offer_ids else 0.0
+            record.best_price = 0.0 if not record.offer_ids else min(record.offer_ids.mapped("price"))
 
     def action_sold(self):
         for record in self:
@@ -77,6 +82,12 @@ class EstateProperty(models.Model):
             self.selling_price = 0.0
             self.offer_ids.write({"status": "refused"})
         return True
+
+    @api.constrains("best_price")
+    def _check_price(self):
+        for record in self:
+            if 0 < record.best_price <= (record.expected_price * 0.8):
+                raise ValidationError("The price must be positive.")
 
 
 class EstatePropertyType(models.Model):
@@ -110,8 +121,19 @@ class PropertyOffer(models.Model):
     partner_id = fields.Many2one("res.partner", required=True, string="Partner")
     property_id = fields.Many2one("estate.property", required=True)
     validity = fields.Integer(string="Validity (days)", default=7)
-    date_deadline = fields.Date(string="Deadline", compute="_compute_date_deadline", inverse="_inverse_date_deadline",
+    date_deadline = fields.Datetime(string="Deadline", compute="_compute_date_deadline", inverse="_inverse_date_deadline",
                                 store=True)
+
+    def action_accept(self):
+        for record in self:
+            record.status = "accepted"
+            record.property_id.state = "offer_accepted"
+        return True
+
+    def action_refuse(self):
+        for record in self:
+            record.status = "refused"
+        return True
 
     @api.depends("create_date", "validity")
     def _compute_date_deadline(self):
@@ -123,3 +145,5 @@ class PropertyOffer(models.Model):
         for record in self:
             if record.date_deadline:
                 record.validity = (record.date_deadline - record.create_date).days + 1
+
+
