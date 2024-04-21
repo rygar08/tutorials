@@ -6,7 +6,7 @@
             <field name="name">estate.property.tree</field>
             <field name="model">estate.property</field>
             <field name="arch" type="xml">
-                <tree string="Properties" decoration-success="state in ('offer_received', 'offer_accepted')"
+                <tree string="Properties" decoration-success="state in ['offer_received', 'offer_accepted']"
                       decoration-muted="state == 'sold'" decoration-bf="state == 'offer_accepted'">
                     <field name="name"/>
                     <field name="property_type_id"/>
@@ -30,12 +30,13 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <!--                        <button name="action_sold" type="object" string="Sold" options="{'states': 'new,offer_received'}"/>-->
-                        <button name="action_sold" type="object" string="Sold"
+                        <button name="action_sold" type="object" string="Sold" invisible="state in ['cancel']"
                                 class="oe_highlight"/>
-                        <button name="action_cancel" type="object" string="Cancel"/>
+                        <button name="action_cancel" type="object" string="Cancel"
+                                invisible="state in ['cancel','sold']"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="new,offer_received,offer_accepted,sold"/>
+
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -46,7 +47,7 @@
                         </div>
                         <group>
                             <group>
-                                <field name="property_type_id"/>
+                                <field name="property_type_id" options="{'no_create': True, 'no_edit': True}"/>
                                 <field name="postcode"/>
                                 <field name="date_availability"/>
                             </group>
@@ -66,14 +67,14 @@
                                         <field name="facades"/>
                                         <field name="garage"/>
                                         <field name="garden"/>
-                                        <field name="garden_area"/>
-                                        <field name="garden_orientation"/>
+                                        <field name="garden_area" invisible="not garden"/>
+                                        <field name="garden_orientation" invisible="not garden"/>
                                         <field name="total_area"/>
                                     </group>
                                 </group>
                             </page>
                             <page string="Offers">
-                                <field name="offer_ids"/>
+                                <field name="offer_ids" readonly="state in ['sold','offer_accepted']"/>
                             </page>
                             <page string="Other Info">
                                 <group>
@@ -99,9 +100,11 @@
                     <field name="postcode"/>
                     <field name="expected_price"/>
                     <field name="bedrooms"/>
-                    <field name="living_area"/>
+                    <field name="living_area" string=">= living_area" filter_domain="[('living_area', '>=', self)]"/>
                     <field name="facades"/>
                     <separator/>
+                    <filter string="New" name="new" domain="[('state', '=', 'new')]"/>
+                    <filter string="Sold" name="sold" domain="[('state', '=', 'sold')]"/>
                     <filter string="Available" name="inactive" domain="[('state', 'in', ['new','offer_received'])]"/>
                     <separator/>
                     <group expand="0" string="Group by">

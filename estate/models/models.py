@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import fields, models
 from odoo.odoo import api, _
 from odoo.odoo.exceptions import UserError, ValidationError
+from odoo.odoo.tools import float_is_zero, float_compare
 
 
 class EstateProperty(models.Model):
@@ -95,12 +96,15 @@ class EstateProperty(models.Model):
         return True
 
     @api.constrains("expected_price", "selling_price")
-    def _check_price(self):
-        for record in self:
-            if 0 < record.best_price <= (record.expected_price * 0.8):
-                raise ValidationError("The price must be positive.")
-
-
+    def _check_price_difference(self):
+        for prop in self:
+            if (
+                not float_is_zero(prop.selling_price, precision_rounding=0.01)
+                and float_compare(prop.selling_price, prop.expected_price * 90.0 / 100.0, precision_rounding=0.01) < 0):
+                raise ValidationError(
+                    "The selling price must be at least 90% of the expected price! "
+                    + "You must reduce the expected price if you want to accept this offer."
+                )
 class EstatePropertyType(models.Model):
     _name = "estate.property.type"
     _description = "Real Estate Property Type"
@@ -113,6 +117,24 @@ class EstatePropertyType(models.Model):
     sequence = fields.Integer("Sequence", default=10)
 
     property_ids = fields.One2many("estate.property", "property_type_id", string="Properties")
+
+    # Computed (for stat button)
+    offer_count = fields.Integer(string="Offers Count", compute="_compute_offer")
+    offer_ids = fields.Many2many("estate.property.offer", string="Offers", compute="_compute_offer")
+
+
+    def _compute_offer(self):
+        data = self.env["estate.property.offer"].read_group(
+            [("property_id.state", "!=", "cancel"), ("property_type_id", "!=", False)],
+            ["ids:array_agg(id)", "property_type_id"],
+            ["property_type_id"],
+        )
+        mapped_count = {d["property_type_id"][0]: d["property_type_id_count"] for d in data}
+        mapped_ids = {d["property_type_id"][0]: d["ids"] for d in data}
+        for prop_type in self:
+            prop_type.offer_count = mapped_count.get(prop_type.id, 0)
+            prop_type.offer_ids = mapped_ids.get(prop_type.id, [])
+
 
 class EstatePropertyTag(models.Model):
     _name = "estate.property.tag"
@@ -137,7 +159,7 @@ class PropertyOffer(models.Model):
 
     create_date = fields.Datetime(default=fields.Datetime.now)
     price = fields.Float(required=True)
-    status = fields.Selection(
+    state = fields.Selection(
         string="Status",
         selection=[("accepted", "Accepted"), ("refused", "Refused")],
         default=False,
@@ -149,18 +171,23 @@ class PropertyOffer(models.Model):
                                     store=True)
     partner_id = fields.Many2one("res.partner", required=True, string="Partner")
     property_id = fields.Many2one("estate.property", required=True)
+    # For stat button:
+    property_type_id = fields.Many2one(
+        "estate.property.type", related="property_id.property_type_id", string="Property Type", store=True
+    )
+
 
     def action_accept(self):
         if "accepted" in self.mapped("property_id.offer_ids.state"):
             raise UserError("An offer as already been accepted.")
         for record in self:
-            record.status = "accepted"
+            record.state = "accepted"
             record.property_id.state = "offer_accepted"
         return True
 
     def action_refuse(self):
         for record in self:
-            record.status = "refused"
+            record.state = "refused"
         return True
 
     @api.depends("create_date", "validity")
