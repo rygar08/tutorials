@@ -70,7 +70,7 @@ class EstateProperty(models.Model):
         self.garden_orientation = "north" if self.garden else None
 
     def unlink(self):
-        if self.state in ["new", "cancel"]:
+        if self.state not in ["new", "cancel"]:
             raise UserError("Only new and canceled properties can be deleted.")
         return super().unlink()
 
@@ -200,3 +200,18 @@ class PropertyOffer(models.Model):
         for record in self:
             if record.date_deadline:
                 record.validity = (record.date_deadline - record.create_date).days + 1
+
+    @api.model
+    def create(self, vals):
+        if vals.get("property_id") and vals.get("price"):
+            prop = self.env["estate.property"].browse(vals["property_id"])
+            # We check if the offer is higher than the existing offers
+            if prop.offer_ids:
+                max_offer = max(prop.mapped("offer_ids.price"))
+                if float_compare(vals["price"], max_offer, precision_rounding=0.01) <= 0:
+                    raise UserError("The offer must be higher than %.2f" % max_offer)
+            prop.state = "offer_received"
+        return super().create(vals)
+
+
+
