@@ -22,6 +22,7 @@
     'installable': True,
     'data': [
         'security/ir.model.access.csv',
+        'reports/estate_property_offers_reports.xml',
         'views/estate_property_offer_views.xml',
         'views/estate_property_type_views.xml',
         'views/estate_property_views.xml',
@@ -29,7 +30,6 @@
         'views/menu.xml',
 
         'reports/estate_property_offers_templates.xml',
-        'reports/estate_property_offers_reports.xml'
     ],
     'license': 'AGPL-3'
 }

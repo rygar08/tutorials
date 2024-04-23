@@ -30,6 +30,8 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
+<!--                             <button name="report_property_offers" string="Print Report" type="action" class="oe_highlight"/>-->
+
                         <button name="action_sold" type="object" string="Sold" invisible="state in ['cancel']"
                                 class="oe_highlight"/>
                         <button name="action_cancel" type="object" string="Cancel"

@@ -1,34 +1,95 @@
 <odoo>
+
+
+    <template id="report_layout2" name="Report layout">&lt;!DOCTYPE html&gt;
+        <html t-att-lang="lang and lang.replace('_', '-')"
+              t-att-data-report-margin-top="data_report_margin_top"
+              t-att-data-report-header-spacing="data_report_header_spacing"
+              t-att-data-report-dpi="data_report_dpi"
+              t-att-data-report-landscape="data_report_landscape"
+              t-att-web-base-url="web_base_url">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="initial-scale=1"/>
+                <title><t t-esc="title or 'Odoo Report'"/></title>
+                <t t-call-assets="web.report_assets_common"/>
+                <!-- Temporary code: only used to maintain CSS for legacy HTML reports (full width...) -->
+                <!-- Should be removed once the reports are fully converted. -->
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', () => {
+                        if (window.self !== window.top) {
+                            document.body.classList.add("o_in_iframe", "container-fluid");
+                            document.body.classList.remove("container");
+                        }
+                    });
+                </script>
+            </head>
+            <body t-att-class="'container' if not full_width else 'container-fluid'" t-att-dir="env['res.lang']._lang_get(lang or env.user.lang).direction or 'ltr'">
+                <div id="wrapwrap">
+                    <h1>Hello world</h1>
+                    <main>
+                        <h2>Report title</h2>
+                        <t t-out="0"/>
+                    </main>
+                </div>
+            </body>
+        </html>
+    </template>
+
+
     <template id="report_property_offers">
-        <t t-foreach="docs" t-as="property">
-            <t t-call="web.html_container">
+        <t t-call="estate.report_layout2">
+            <t t-foreach="docs" t-as="o">
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <h2>
-                            <span t-field="property.name"/>
-                        </h2>
-                        <div>
-                            <strong>Expected Price: </strong>
-                            <span t-field="property.expected_price"/>
-                        </div>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-set="offers" t-value="property.mapped('offer_ids')"/>
-                                <tr t-foreach="offers" t-as="offer">
-                                    <td>
-                                        <span t-field="offer.price"/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <p>This object's name is <span t-field="o.name"/></p>
                     </div>
                 </t>
             </t>
         </t>
     </template>
+
+    <!-- <template id="report_property_offers">
+         <t t-call="web.external_layout">
+             <t t-if="not o" t-set="o" t-value="doc"/>
+
+             <t t-if="not company">
+                 &lt;!&ndash; Multicompany &ndash;&gt;
+                 <t t-if="company_id">
+                     <t t-set="company" t-value="company_id"/>
+                 </t>
+                 <t t-elif="o and 'company_id' in o and o.company_id.sudo()">
+                     <t t-set="company" t-value="o.company_id.sudo()"/>
+                 </t>
+                 <t t-else="else">
+                     <t t-set="company" t-value="res_company"/>
+                 </t>
+             </t>
+
+             <div class="header2">
+                 <div class="row">
+                     <div class="col-3">
+                         <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                     </div>
+                     <div class="col-2 offset-2 text-center">
+                         <span t-esc="company.name"/>
+                     </div>
+                     <div class="col-2 offset-3 text-end">
+                         <ul class="list-inline">
+                             <li class="list-inline-item"><span class="page"/></li>
+                             <li class="list-inline-item">/</li>
+                             <li class="list-inline-item"><span class="topage"/></li>
+                         </ul>
+                     </div>
+                 </div>
+             </div>
+             <div class="content" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+                 <div class="row">
+                     <t t-out="0"/>
+                 </div>
+             </div>
+         </t>
+     </template>
+ -->
+
 </odoo>
