@@ -1,0 +1,18 @@
+<odoo>
+    <data>
+        <!-- Security group for the estate module -->
+        <record id="group_estate_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Security rule for the estate model -->
+<!--        <record id="estate_rule" model="ir.rule">-->
+<!--            <field name="name">Estate Manager</field>-->
+<!--            <field name="model_id" ref="model_estate"/>-->
+<!--            <field name="domain_force">[(1, '=', 1)]</field>-->
+<!--            <field name="groups" eval="[(6, 0, [ref('group_estate_manager')])]"/>-->
+<!--        </record>-->
+
+    </data>
+</odoo>
