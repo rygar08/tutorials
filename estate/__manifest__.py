@@ -21,6 +21,7 @@
     'application': True,
     'installable': True,
     'data': [
+        'security/security.xml',
         'security/ir.model.access.csv',
         'reports/estate_property_offers_reports.xml',
         'views/estate_property_offer_views.xml',
