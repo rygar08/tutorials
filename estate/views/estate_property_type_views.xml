@@ -20,6 +20,15 @@
             <field name="arch" type="xml">
                 <form string="Estate Property Type">
                     <sheet>
+                         <div class="oe_button_box" name="expense_button_box">
+                                 <button name="toggle_active"
+                                         type="object"
+                                         confirm="(Un)archiving a project automatically (un)archives its tasks and issues. Do you want to proceed?"
+                                         class="oe_stat_button"
+                                         icon="fa-archive">
+                                         <field name="active" widget="boolean_button" options='{"terminology": "archive"}'/>
+                                 </button>
+                         </div>
                         <div class="oe_button_box" name="button_box">
                             <button name="%(estate.estate_property_offer_action)d" type="action" class="oe_stat_button" icon="fa-money">
                                 <field name="offer_count" widget="statinfo" string="Offers"/>

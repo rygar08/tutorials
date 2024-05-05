@@ -38,7 +38,7 @@
 
 
     <template id="report_property_offers">
-        <t t-call="estate.report_layout2">
+        <t t-call="web.report_layout">
             <t t-foreach="docs" t-as="o">
                 <t t-call="web.external_layout">
                     <div class="page">
